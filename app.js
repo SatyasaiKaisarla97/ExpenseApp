@@ -17,6 +17,25 @@ app.get("/user/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.post("/user/login", async (req, res, next) => {
+  const { email, password } = req.body;
+  try {
+    let userData = await userDetails.findOne({ where: { email: email } });
+    if (!userData) {
+      return res.status(401).send("User not found");
+    }
+    if (password !== userData.password) {
+      return res.status(401).send("Invalid Password");
+    }
+    req.session.userId = userData.id;
+    req.session.email = userData.email;
+    console.log(`Session ID : ${req.sessionID}`);
+    return res.redirect("/");
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 app.post("/user/signup", async (req, res) => {
   const { username, email, password } = req.body;
   if (!username || !email || !password) {

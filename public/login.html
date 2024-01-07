@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
   </head>
 
   <style>
@@ -55,8 +56,30 @@
         <label for="password">Password:</label>
         <input type="password" id="password" required />
         <button type="submit">Login</button>
-        <p>Not a User <a href="./signup">Signup</a></p>
+        <p>Not a Use?  please <a href="./signup">Signup</a> here!</p>
       </form>
     </div>
   </body>
+  <script>
+    document
+      .getElementById("signup-form")
+      .addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        try {
+          let response = await axios.post("/user/login", {
+            email: email,
+            password: password,
+          });
+          alret("user login successful");
+        } catch (error) {
+          if (error.response.status === 401) {
+            alert(error.response.data);
+          }
+        }
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
+      });
+  </script>
 </html>
