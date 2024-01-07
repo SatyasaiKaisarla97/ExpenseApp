@@ -12,7 +12,7 @@
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
-      margin: 0;
+      margin-right: 50vw;
       padding: 0;
     }
 
@@ -107,13 +107,6 @@
       <form id="my-form">
         <ul id="user-data">
           <li>
-            <input
-              type="hidden"
-              name="id"
-              value="<%= require('uuid').v4() %>"
-            />
-          </li>
-          <li>
             <label for="expense-amount">Choose Expense Amount : </label>
             <input type="number" name="amount" id="expense-amount" required />
           </li>
@@ -129,7 +122,7 @@
           <li>
             <label for="expense-category">Choose a Category:</label>
             <select name="category" id="expense-category" required>
-              <option value="" style="display: none;"></option>
+              <option value="" style="display: none"></option>
               <option value="food">food</option>
               <option value="movie">movie</option>
               <option value="Car">car</option>
@@ -147,98 +140,132 @@
       </div>
     </div>
 
+  </style>
+  <body>
+    <h1>Expense Tracker</h1>
+    <div>
+      <!-- Add a logout button -->
+      <button id="logout-button" onclick="logout()">Logout</button>
+      <form id="my-form">
+        <!-- Your existing form content remains unchanged -->
+      </form>
+      <div>
+        <h2>Expenses</h2>
+        <ul id="user-list"></ul>
+      </div>
+    </div>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("my-form");
-        const userList = document.getElementById("user-list");
-        let updateExpenseId = null;
-
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const expenseAmount = document.querySelector("#expense-amount").value;
-          const description = document.querySelector(
-            "#expense-description"
-          ).value;
-          const category = document.querySelector("#expense-category").value;
-
-          try {
-            if (updateExpenseId) {
-              await axios.put(`/user/expense/${updateExpenseId}`, {
-                expenseAmount,
-                description,
-                category,
-              });
-              updateExpenseId = null;
-            } else {
-              await axios.post("/user/expense", {
-                expenseAmount,
-                description,
-                category,
-              });
-            }
-
-            getExpense();
-          } catch (error) {
-            console.error("Error:", error);
-          }
-          document.getElementById("expense-amount").value = "";
-          document.getElementById("expense-description").value = "";
-          document.getElementById("expense-category").value = "";
-        });
-
-        async function getExpense() {
-          try {
-            const response = await axios.get("/user/expense");
-            showExpenses(response.data);
-          } catch (error) {
-            console.error("Error:", error);
-          }
-        }
-
-        function showExpenses(data) {
-          userList.innerHTML = "";
-          data.forEach((expense) => {
-            const listItem = document.createElement("li");
-            listItem.style.listStyle = "none";
-            listItem.textContent = `${expense.expenseAmount} - ${expense.description} - ${expense.category}`;
-
-            const deleteBtn = document.createElement("button");
-            deleteBtn.textContent = "Delete Expense";
-
-            deleteBtn.addEventListener("click", () =>
-              deleteExpense(expense.id)
-            );
-
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "Edit Expense";
-
-            editBtn.addEventListener("click", () => editExpense(expense));
-
-            listItem.appendChild(deleteBtn);
-            listItem.appendChild(editBtn);
-            userList.appendChild(listItem);
+          axios.interceptors.request.use(function (config) {
+              const token = localStorage.getItem('jwtToken');
+              config.headers.Authorization = token ? `Bearer ${token}` : '';
+              return config;
           });
-        }
 
-        async function deleteExpense(id) {
-          try {
-            await axios.delete(`/user/expense/${id}`);
-            getExpense();
-          } catch (error) {
-            console.error("Error:", error);
+          const form = document.getElementById("my-form");
+          const userList = document.getElementById("user-list");
+          const logoutButton = document.getElementById("logout-button");
+
+          const token = localStorage.getItem("token");
+          if (!token) {
+              window.location.href = "./login.html";
           }
-        }
 
-        function editExpense(expense) {
-          updateExpenseId = expense.id;
-          document.getElementById("expense-amount").value =
-            expense.expenseAmount;
-          document.getElementById("expense-description").value =
-            expense.description;
-          document.getElementById("expense-category").value = expense.category;
-        }
-        getExpense();
+          logoutButton.addEventListener("click", logout);
+          form.addEventListener("submit", formSubmitHandler);
+
+          let updateExpenseId = null;
+
+          function logout() {
+              localStorage.removeItem("token");
+              window.location.href = "./login.html";
+          }
+
+          function formSubmitHandler(e) {
+              e.preventDefault();
+              const expenseAmount = document.querySelector("#expense-amount").value;
+              const description = document.querySelector("#expense-description").value;
+              const category = document.querySelector("#expense-category").value;
+
+              const expenseData = {
+                  expenseAmount,
+                  description,
+                  category
+              };
+
+              if (updateExpenseId) {
+                  updateExpense(expenseData);
+              } else {
+                  addExpense(expenseData);
+              }
+          }
+
+          async function addExpense(expenseData) {
+              try {
+                  await axios.post("/user/expense", expenseData);
+                  getExpense();
+              } catch (error) {
+                  console.error("Error adding expense:", error);
+              }
+          }
+
+          async function updateExpense(expenseData) {
+              try {
+                  await axios.put(`/user/expense/${updateExpenseId}`, expenseData);
+                  updateExpenseId = null;
+                  getExpense();
+              } catch (error) {
+                  console.error("Error updating expense:", error);
+              }
+          }
+
+          async function deleteExpense(id) {
+              try {
+                  await axios.delete(`/user/expense/${id}`);
+                  getExpense();
+              } catch (error) {
+                  console.error("Error deleting expense:", error);
+              }
+          }
+
+          function editExpense(expense) {
+              updateExpenseId = expense.id;
+              document.getElementById("expense-amount").value = expense.expenseAmount;
+              document.getElementById("expense-description").value = expense.description;
+              document.getElementById("expense-category").value = expense.category;
+          }
+
+          function showExpenses(expenses) {
+              userList.innerHTML = "";
+              expenses.forEach((expense) => {
+                  const listItem = document.createElement("li");
+                  listItem.textContent = `${expense.expenseAmount} - ${expense.description} - ${expense.category}`;
+
+                  const deleteBtn = document.createElement("button");
+                  deleteBtn.textContent = "Delete";
+                  deleteBtn.onclick = () => deleteExpense(expense.id);
+
+                  const editBtn = document.createElement("button");
+                  editBtn.textContent = "Edit";
+                  editBtn.onclick = () => editExpense(expense);
+
+                  listItem.appendChild(deleteBtn);
+                  listItem.appendChild(editBtn);
+                  userList.appendChild(listItem);
+              });
+          }
+
+          async function getExpense() {
+              try {
+                  const response = await axios.get("/user/expense");
+                  showExpenses(response.data);
+              } catch (error) {
+                  console.error("Error fetching expenses:", error);
+              }
+          }
+
+          getExpense();
       });
-    </script>
+  </script
   </body>
 </html>

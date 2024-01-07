@@ -1,8 +1,17 @@
 const { Sequelize } = require("sequelize");
 const { v4: uuidv4 } = require("uuid");
 const sequelize = require("../util/database");
+const userDetails = require("../models/signup");
 
-const expense = sequelize.define("expense", {
+const Expense = sequelize.define("expense", {
+  userId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    references: {
+      model: userDetails,
+      key: "userId",
+    },
+  },
   id: {
     type: Sequelize.UUID,
     defaultValue: () => uuidv4(),
@@ -23,4 +32,4 @@ const expense = sequelize.define("expense", {
   },
 });
 
-module.exports = expense;
+module.exports = Expense;

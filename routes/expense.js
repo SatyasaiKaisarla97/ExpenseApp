@@ -1,70 +1,18 @@
 const express = require("express");
 const router = express.Router();
-const Expense = require("../models/expense");
-const { v4: uuidv4 } = require("uuid");
-const path = require("path");
+const expenseController = require("../controllers/expense");
+const verifyToken = require("../middleware").verifyToken;
 
-router.post("/", async (req, res) => {
-  try {
-    const { id, expenseAmount, description, category } = req.body;
-    const expense = await Expense.create({
-      id,
-      expenseAmount,
-      description,
-      category,
-    });
-    res.json(expense);
-  } catch (error) {
-    console.error(error);
-  }
-});
+router.post("/", verifyToken, expenseController.postExpenses);
 
-router.get("/expenses", async (req, res) => {
-  res.sendFile(path.join(__dirname, "..", "public", "expense.html"));
-});
+router.get("/expenses", verifyToken, expenseController.showExpenses);
 
-router.get("/", async (req, res) => {
-  try {
-    const expenses = await Expense.findAll();
-    res.json(expenses);
-  } catch (error) {
-    console.error(error);
-  }
-});
-router.put("/:id", async (req, res) => {
-  try {
-    const expenseId = req.params.id;
-    const { expenseAmount, description, category } = req.body;
-    const existingExpense = await Expense.findByPk(expenseId);
-    if (existingExpense) {
-      await existingExpense.update({ expenseAmount, description, category });
-      res.json(existingExpense);
-    } else {
-      res.json({ message: "Expense not found" });
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
+router.get("/", verifyToken, expenseController.getExpenses);
 
-router.get("/:id", async (req, res) => {
-  try {
-    const expenseId = req.params.id;
-    const response = await Expense.findByPk(expenseId);
-    res.json(response);
-  } catch (error) {
-    console.error(error);
-  }
-});
+router.put("/:id", verifyToken, expenseController.updateExpenses);
 
-router.delete("/:id", async (req, res) => {
-  try {
-    const expenseId = req.params.id;
-    await Expense.findByPk(expenseId).then((expense) => expense.destroy());
-    res.json({ message: "expense deleted" });
-  } catch (error) {
-    console.error(error);
-  }
-});
+router.get("/:id", verifyToken, expenseController.getExpense);
+
+router.delete("/:id", verifyToken, expenseController.deleteExpense);
 
 module.exports = router;

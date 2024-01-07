@@ -1,12 +1,14 @@
 const path = require("path");
 const userDetails = require("../models/signup");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const saltRounds = 10;
+
 function userSignUp(req, res) {
   res.sendFile(path.join(__dirname, "..", "public", "signup.html"));
 }
 
-function userLogin(req, res) {
+async function userLogin(req, res) {
   res.sendFile(path.join(__dirname, "..", "public", "login.html"));
 }
 
@@ -15,6 +17,7 @@ async function signupUser(req, res, next) {
   if (!username || !email || !password) {
     return res.status(400).send("All fields are required");
   }
+
   try {
     let user = await userDetails.findOne({ where: { email: email } });
     if (user) {
@@ -26,7 +29,16 @@ async function signupUser(req, res, next) {
         email,
         password: hashedPassword,
       });
-      res.json(newUser);
+
+      const token = jwt.sign(
+        { userId: newUser.userId },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "1h",
+        }
+      );
+
+      res.json({ token });
     }
   } catch (error) {
     console.error(error);
@@ -41,11 +53,25 @@ async function loginUser(req, res, next) {
     if (!userData) {
       return res.status(401).send("User not found");
     }
+
     const match = await bcrypt.compare(password, userData.password);
     if (!match) {
       return res.status(401).send("Invalid Password");
     }
-    res.json({ success: true, redirectUrl: '/user/expense/expenses' })
+
+    const token = jwt.sign(
+      { userId: userData.userId },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    res.json({
+      success: true,
+      token: token,
+      redirectUrl: "/user/expense/expenses",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("Error during login");
