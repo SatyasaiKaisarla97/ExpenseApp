@@ -45,7 +45,7 @@ async function loginUser(req, res, next) {
     if (!match) {
       return res.status(401).send("Invalid Password");
     }
-    return res.redirect("/");
+    res.json({ success: true, redirectUrl: '/user/expense/expenses' })
   } catch (error) {
     console.error(error);
     res.status(500).send("Error during login");

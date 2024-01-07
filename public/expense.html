@@ -1,0 +1,244 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <script
+      src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"
+      defer
+    ></script>
+  </head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    .container {
+      width: 50%;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #user-data {
+      list-style: none;
+      padding: 0;
+    }
+
+    #user-data li {
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+      width: calc(100% - 16px);
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      width: auto;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #user-list {
+      margin-top: 20px;
+    }
+
+    #user-list li {
+      background: #eee;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: left;
+    }
+
+    #user-list li div {
+      display: flex;
+      align-items: center;
+    }
+
+    #user-list button {
+      margin-left: 10px;
+      padding: 5px 10px;
+    }
+
+    a {
+      color: blue;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <body>
+    <h1>Expense Tracker</h1>
+    <div>
+      <form id="my-form">
+        <ul id="user-data">
+          <li>
+            <input
+              type="hidden"
+              name="id"
+              value="<%= require('uuid').v4() %>"
+            />
+          </li>
+          <li>
+            <label for="expense-amount">Choose Expense Amount : </label>
+            <input type="number" name="amount" id="expense-amount" required />
+          </li>
+          <li>
+            <label for="expense-description">Expense Description :</label>
+            <input
+              type="text"
+              name="description"
+              id="expense-description"
+              required
+            />
+          </li>
+          <li>
+            <label for="expense-category">Choose a Category:</label>
+            <select name="category" id="expense-category" required>
+              <option value="" style="display: none;"></option>
+              <option value="food">food</option>
+              <option value="movie">movie</option>
+              <option value="Car">car</option>
+              <option value="outing">outing</option>
+            </select>
+          </li>
+          <li>
+            <button type="submit">Add Expenses</button>
+          </li>
+        </ul>
+      </form>
+      <div>
+        <h2>Expenses</h2>
+        <ul id="user-list"></ul>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("my-form");
+        const userList = document.getElementById("user-list");
+        let updateExpenseId = null;
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const expenseAmount = document.querySelector("#expense-amount").value;
+          const description = document.querySelector(
+            "#expense-description"
+          ).value;
+          const category = document.querySelector("#expense-category").value;
+
+          try {
+            if (updateExpenseId) {
+              await axios.put(`/user/expense/${updateExpenseId}`, {
+                expenseAmount,
+                description,
+                category,
+              });
+              updateExpenseId = null;
+            } else {
+              await axios.post("/user/expense", {
+                expenseAmount,
+                description,
+                category,
+              });
+            }
+
+            getExpense();
+          } catch (error) {
+            console.error("Error:", error);
+          }
+          document.getElementById("expense-amount").value = "";
+          document.getElementById("expense-description").value = "";
+          document.getElementById("expense-category").value = "";
+        });
+
+        async function getExpense() {
+          try {
+            const response = await axios.get("/user/expense");
+            showExpenses(response.data);
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        }
+
+        function showExpenses(data) {
+          userList.innerHTML = "";
+          data.forEach((expense) => {
+            const listItem = document.createElement("li");
+            listItem.style.listStyle = "none";
+            listItem.textContent = `${expense.expenseAmount} - ${expense.description} - ${expense.category}`;
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "Delete Expense";
+
+            deleteBtn.addEventListener("click", () =>
+              deleteExpense(expense.id)
+            );
+
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit Expense";
+
+            editBtn.addEventListener("click", () => editExpense(expense));
+
+            listItem.appendChild(deleteBtn);
+            listItem.appendChild(editBtn);
+            userList.appendChild(listItem);
+          });
+        }
+
+        async function deleteExpense(id) {
+          try {
+            await axios.delete(`/user/expense/${id}`);
+            getExpense();
+          } catch (error) {
+            console.error("Error:", error);
+          }
+        }
+
+        function editExpense(expense) {
+          updateExpenseId = expense.id;
+          document.getElementById("expense-amount").value =
+            expense.expenseAmount;
+          document.getElementById("expense-description").value =
+            expense.description;
+          document.getElementById("expense-category").value = expense.category;
+        }
+        getExpense();
+      });
+    </script>
+  </body>
+</html>
