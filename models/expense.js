@@ -1,35 +1,34 @@
-const { Sequelize } = require("sequelize");
-const { v4: uuidv4 } = require("uuid");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../util/database");
-const userDetails = require("../models/signup");
+const users = require("./user");
 
-const Expense = sequelize.define("expense", {
+const expenses = sequelize.define("expenses", {
   userId: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: userDetails,
-      key: "userId",
+      model: "users",
+      key: "id",
     },
   },
   id: {
-    type: Sequelize.UUID,
-    defaultValue: () => uuidv4(),
-    allowNull: false,
+    type: DataTypes.UUID,
+    defaultValue: () => DataTypes.UUIDV4(),
     primaryKey: true,
+    unique: true,
   },
   expenseAmount: {
-    type: Sequelize.INTEGER,
+    type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
   description: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   category: {
-    type: Sequelize.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
   },
 });
 
-module.exports = Expense;
+module.exports = expenses;

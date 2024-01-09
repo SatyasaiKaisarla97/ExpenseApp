@@ -3,107 +3,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script
-      src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"
-      defer
+      src="https://browser.sentry-cdn.com/7.64.0/bundle.min.js"
+      crossorigin="anonymous"
     ></script>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="stylesheet" href="./styles/expense.css" defer />
+    <script src="./scripts/expense.js" defer></script>
   </head>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin-right: 50vw;
-      padding: 0;
-    }
-
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-
-    .container {
-      width: 50%;
-      margin: 20px auto;
-      background: #fff;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    #user-data {
-      list-style: none;
-      padding: 0;
-    }
-
-    #user-data li {
-      margin-bottom: 10px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-      color: #333;
-    }
-
-    input[type="number"],
-    input[type="text"],
-    select {
-      width: calc(100% - 16px);
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-
-    button {
-      padding: 8px;
-      background-color: #4caf50;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 4px;
-      width: auto;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    #user-list {
-      margin-top: 20px;
-    }
-
-    #user-list li {
-      background: #eee;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: left;
-    }
-
-    #user-list li div {
-      display: flex;
-      align-items: center;
-    }
-
-    #user-list button {
-      margin-left: 10px;
-      padding: 5px 10px;
-    }
-
-    a {
-      color: blue;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
   <body>
     <h1>Expense Tracker</h1>
-    <div>
+    <div class="container">
       <form id="my-form">
         <ul id="user-data">
           <li>
@@ -123,10 +35,10 @@
             <label for="expense-category">Choose a Category:</label>
             <select name="category" id="expense-category" required>
               <option value="" style="display: none"></option>
-              <option value="food">food</option>
-              <option value="movie">movie</option>
-              <option value="Car">car</option>
-              <option value="outing">outing</option>
+              <option value="Food">Food</option>
+              <option value="Movie">Movie</option>
+              <option value="Car">Car</option>
+              <option value="Outing">Outing</option>
             </select>
           </li>
           <li>
@@ -134,138 +46,11 @@
           </li>
         </ul>
       </form>
+      <button type="button" id="buy-premium-btn">Buy Premium</button>
       <div>
         <h2>Expenses</h2>
         <ul id="user-list"></ul>
       </div>
     </div>
-
-  </style>
-  <body>
-    <h1>Expense Tracker</h1>
-    <div>
-      <!-- Add a logout button -->
-      <button id="logout-button" onclick="logout()">Logout</button>
-      <form id="my-form">
-        <!-- Your existing form content remains unchanged -->
-      </form>
-      <div>
-        <h2>Expenses</h2>
-        <ul id="user-list"></ul>
-      </div>
-    </div>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-          axios.interceptors.request.use(function (config) {
-              const token = localStorage.getItem('jwtToken');
-              config.headers.Authorization = token ? `Bearer ${token}` : '';
-              return config;
-          });
-
-          const form = document.getElementById("my-form");
-          const userList = document.getElementById("user-list");
-          const logoutButton = document.getElementById("logout-button");
-
-          const token = localStorage.getItem("token");
-          if (!token) {
-              window.location.href = "./login.html";
-          }
-
-          logoutButton.addEventListener("click", logout);
-          form.addEventListener("submit", formSubmitHandler);
-
-          let updateExpenseId = null;
-
-          function logout() {
-              localStorage.removeItem("token");
-              window.location.href = "./login.html";
-          }
-
-          function formSubmitHandler(e) {
-              e.preventDefault();
-              const expenseAmount = document.querySelector("#expense-amount").value;
-              const description = document.querySelector("#expense-description").value;
-              const category = document.querySelector("#expense-category").value;
-
-              const expenseData = {
-                  expenseAmount,
-                  description,
-                  category
-              };
-
-              if (updateExpenseId) {
-                  updateExpense(expenseData);
-              } else {
-                  addExpense(expenseData);
-              }
-          }
-
-          async function addExpense(expenseData) {
-              try {
-                  await axios.post("/user/expense", expenseData);
-                  getExpense();
-              } catch (error) {
-                  console.error("Error adding expense:", error);
-              }
-          }
-
-          async function updateExpense(expenseData) {
-              try {
-                  await axios.put(`/user/expense/${updateExpenseId}`, expenseData);
-                  updateExpenseId = null;
-                  getExpense();
-              } catch (error) {
-                  console.error("Error updating expense:", error);
-              }
-          }
-
-          async function deleteExpense(id) {
-              try {
-                  await axios.delete(`/user/expense/${id}`);
-                  getExpense();
-              } catch (error) {
-                  console.error("Error deleting expense:", error);
-              }
-          }
-
-          function editExpense(expense) {
-              updateExpenseId = expense.id;
-              document.getElementById("expense-amount").value = expense.expenseAmount;
-              document.getElementById("expense-description").value = expense.description;
-              document.getElementById("expense-category").value = expense.category;
-          }
-
-          function showExpenses(expenses) {
-              userList.innerHTML = "";
-              expenses.forEach((expense) => {
-                  const listItem = document.createElement("li");
-                  listItem.textContent = `${expense.expenseAmount} - ${expense.description} - ${expense.category}`;
-
-                  const deleteBtn = document.createElement("button");
-                  deleteBtn.textContent = "Delete";
-                  deleteBtn.onclick = () => deleteExpense(expense.id);
-
-                  const editBtn = document.createElement("button");
-                  editBtn.textContent = "Edit";
-                  editBtn.onclick = () => editExpense(expense);
-
-                  listItem.appendChild(deleteBtn);
-                  listItem.appendChild(editBtn);
-                  userList.appendChild(listItem);
-              });
-          }
-
-          async function getExpense() {
-              try {
-                  const response = await axios.get("/user/expense");
-                  showExpenses(response.data);
-              } catch (error) {
-                  console.error("Error fetching expenses:", error);
-              }
-          }
-
-          getExpense();
-      });
-  </script
   </body>
 </html>

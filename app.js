@@ -1,40 +1,34 @@
 require("dotenv").config();
 const express = require("express");
-const jwt = require("jsonwebtoken");
-const { expressjwt: expressJwt } = require("express-jwt");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const loginRoutes = require("./routes/loginRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
+const razorpayRoutes = require("./routes/razorpayRoutes");
 const sequelize = require("./util/database");
-const loginRoutes = require("./routes/signup");
-const expenseRoutes = require("./routes/expense");
-const Expense = require("./models/expense");
-const userDetails = require("./models/signup");
-
+const expenses = require("./models/expense");
+const users = require("./models/user");
 const app = express();
 
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-
-app.use(
-  expressJwt({
-    secret: process.env.JWT_SECRET,
-    algorithms: ["HS256"],
-  }).unless({
-    path: ["/user/login", "/user/signup"],
-  })
-);
-
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-app.use("/user", loginRoutes);
-app.use("/user/expense", expenseRoutes);
+app.use("/", loginRoutes);
+app.use("/user", expenseRoutes);
+app.use("/razorpay", razorpayRoutes);
 
-Expense.belongsTo(userDetails, { foreignKey: "userId" });
-userDetails.hasMany(Expense, { foreignKey: "userId" });
+expenses.belongsTo(
+  users,
+  { foreignKey: "userId" },
+  { constraints: true, onDelete: "CASCADE" }
+);
+users.hasMany(expenses, { foreignKey: "userId" });
 
 sequelize
-  .sync()
-  .then(() => {
-    app.listen(process.env.PORT, () => {
-      console.log(`Server is running on port ${process.env.PORT}`);
-    });
+  .sync({ force: false })
+  .then((res) => {
+    app.listen(process.env.PORT);
   })
   .catch((err) => console.log(err));

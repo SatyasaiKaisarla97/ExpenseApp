@@ -1,19 +1,17 @@
-const Expense = require("../models/expense");
+const expenses = require("../models/expense");
 const { v4: uuidv4 } = require("uuid");
-const path = require("path");
-const jwt = require("jsonwebtoken");
 
 async function postExpenses(req, res) {
   try {
     const { expenseAmount, description, category } = req.body;
     const userId = req.user.userId;
     const id = uuidv4();
-    const expense = await Expense.create({
+    const expense = await expenses.create({
       id,
       expenseAmount,
       description,
       category,
-      userId, 
+      userId,
     });
     res.json(expense);
   } catch (error) {
@@ -22,15 +20,11 @@ async function postExpenses(req, res) {
   }
 }
 
-async function showExpenses(req, res) {
-  res.sendFile(path.join(__dirname, "..", "public", "expense.html"));
-}
-
 async function getExpenses(req, res) {
   try {
     const userId = req.user.userId;
-    const expenses = await Expense.findAll({ where: { userId: userId } });
-    res.json(expenses);
+    const allexpenses = await expenses.findAll({ where: { userId: userId } });
+    res.json(allexpenses);
   } catch (error) {
     console.error(error);
     res.status(500).send("Error in fetching expenses");
@@ -43,7 +37,7 @@ async function updateExpenses(req, res) {
     const userId = req.user.userId;
     const { expenseAmount, description, category } = req.body;
 
-    const expense = await Expense.findOne({
+    const expense = await expenses.findOne({
       where: { id: expenseId, userId: userId },
     });
     if (expense) {
@@ -62,7 +56,7 @@ async function getExpense(req, res) {
   try {
     const expenseId = req.params.id;
     const userId = req.user.userId;
-    const expense = await Expense.findOne({
+    const expense = await expenses.findOne({
       where: { id: expenseId, userId: userId },
     });
 
@@ -81,7 +75,7 @@ async function deleteExpense(req, res) {
   try {
     const expenseId = req.params.id;
     const userId = req.user.userId;
-    const expense = await Expense.findOne({
+    const expense = await expenses.findOne({
       where: { id: expenseId, userId: userId },
     });
 
@@ -99,7 +93,6 @@ async function deleteExpense(req, res) {
 
 module.exports = {
   postExpenses,
-  showExpenses,
   getExpenses,
   updateExpenses,
   getExpense,
