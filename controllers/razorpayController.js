@@ -7,12 +7,12 @@ const razorpayInstance = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-exports.createOrder = async (req, res) => {
+async function createOrder(req, res) {
   try {
     const options = {
-      amount: 5000 * 100,
+      amount: 500 * 10,
       currency: "INR",
-      receipt: `receipt_${req.userId}`,
+      receipt: `receipt_${req.user.userId}`,
       payment_capture: "1",
     };
 
@@ -23,18 +23,18 @@ exports.createOrder = async (req, res) => {
     console.error("Error in createOrder:", error);
     res.status(500).send("Error creating Razorpay order");
   }
-};
+}
 
-exports.verifyPayment = async (req, res) => {
+async function verifyPayment(req, res) {
   try {
     const { order_id, payment_id, signature } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
     const dataString = `${order_id}|${payment_id}`;
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
       .update(dataString.toString())
       .digest("hex");
-    console.log(`${expectedSignature},${signature}`);
+    // console.log(`${expectedSignature},${signature}`);
     if (expectedSignature === signature) {
       await updatePremiumStatus(req.user.userId);
 
@@ -48,8 +48,13 @@ exports.verifyPayment = async (req, res) => {
     console.error("Error in verifyPayment:", error);
     res.status(500).send("Error verifying payment");
   }
-};
+}
 
 async function updatePremiumStatus(userId) {
   await users.update({ isPremium: true }, { where: { id: userId } });
 }
+
+module.exports = {
+  createOrder,
+  verifyPayment,
+};

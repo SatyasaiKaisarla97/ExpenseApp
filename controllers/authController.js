@@ -36,7 +36,27 @@ async function login(req, res, next) {
   }
 }
 
+async function verify(req, res) {
+  res.status(200).send({ valid: true });
+}
+
+async function checkPremiumStatus(req, res) {
+  try {
+    const id = req.user.userId;
+    const user = await users.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.log(user);
+    res.status(200).json({ isPremium: user.isPremium });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+}
 module.exports = {
   signUp,
   login,
+  verify,
+  checkPremiumStatus,
 };

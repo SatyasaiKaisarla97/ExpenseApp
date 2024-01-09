@@ -1,4 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("token");
+  displayLeaderboard();
+
+  if (!token) {
+    window.location.href = "/login.html";
+  } else {
+    axios
+      .get("/verifyToken", { headers: { Authorization: `Bearer ${token}` } })
+      .then((response) => {
+        checkPremiumStatus();
+        getExpense();
+      })
+      .catch((error) => {
+        console.error("Token verification failed:", error);
+        localStorage.removeItem("token");
+        window.location.href = "/login.html";
+      });
+  }
+  async function checkPremiumStatus() {
+    try {
+      const response = await axios.get("/check-premium", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.isPremium) {
+        document.getElementById("buy-premium-btn").style.display = "none";
+        document.getElementById("premiumMessage").style.display = "block";
+      }
+    } catch (error) {
+      console.error("Error checking premium status:", error);
+    }
+  }
+
   const form = document.getElementById("my-form");
   const userList = document.getElementById("user-list");
   document
@@ -105,17 +137,23 @@ document.addEventListener("DOMContentLoaded", () => {
         order_id: orderResponse.data.id,
         handler: async function (response) {
           try {
+            const {
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
+            } = response;
             const verifyResponse = await axios.post(
               "/razorpay/verify-payment",
               {
-                order_id: response.razorpay_order_id,
-                payment_id: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
+                order_id: razorpay_order_id,
+                payment_id: razorpay_payment_id,
+                signature: razorpay_signature,
               }
             );
-            console.log(`${order_id}, ${payment_id}, ${signature}`);
-            if (verifyResponse.data.status === "success") {
+
+            if (verifyResponse.data.success) {
               alert("Payment successful and verified!");
+              checkPremiumStatus();
             } else {
               alert("Payment verification failed");
             }
@@ -135,5 +173,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function fetchLeaderboardData() {
+    try {
+      const response = await axios.get("/leaderboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching leaderboard data:", error);
+    }
+  }
+  async function displayLeaderboard() {
+    const leaderboardData = await fetchLeaderboardData();
+    const leaderboardList = document.getElementById("leaderboards");
+    console.log(leaderboardData);
+    leaderboardData.forEach((user) => {
+      const listItem = document.createElement("li");
+      listItem.textContent = `${user.username}-${user.totalExpense ? user.totalExpense + ' Rs' : '0'}`;
+      leaderboardList.appendChild(listItem);
+    });
+  }
   getExpense();
 });

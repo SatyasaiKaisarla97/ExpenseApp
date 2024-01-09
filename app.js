@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const loginRoutes = require("./routes/loginRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const razorpayRoutes = require("./routes/razorpayRoutes");
+const leaderboardRoutes = require('./routes/leaderboardRoutes')
 const sequelize = require("./util/database");
 const expenses = require("./models/expense");
 const users = require("./models/user");
@@ -18,6 +19,7 @@ app.use(express.static("public"));
 app.use("/", loginRoutes);
 app.use("/user", expenseRoutes);
 app.use("/razorpay", razorpayRoutes);
+app.use('/', leaderboardRoutes)
 
 expenses.belongsTo(
   users,
