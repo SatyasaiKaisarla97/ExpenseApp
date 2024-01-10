@@ -1,6 +1,7 @@
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const users = require("../models/user");
+const sequelize = require("../util/database");
 
 const razorpayInstance = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -51,7 +52,17 @@ async function verifyPayment(req, res) {
 }
 
 async function updatePremiumStatus(userId) {
-  await users.update({ isPremium: true }, { where: { id: userId } });
+  const t = await sequelize.transaction();
+  try {
+    await users.update(
+      { isPremium: true },
+      { where: { id: userId }, transaction: t }
+    );
+    await t.commit();
+  } catch (error) {
+    await t.rollback();
+    throw new Error("Failed to set premium status");
+  }
 }
 
 module.exports = {
