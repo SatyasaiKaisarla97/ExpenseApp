@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
   const token = localStorage.getItem("token");
-  displayLeaderboard();
 
   if (!token) {
     window.location.href = "/login.html";
@@ -185,14 +184,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   async function displayLeaderboard() {
-    const leaderboardData = await fetchLeaderboardData();
-    const leaderboardList = document.getElementById("leaderboards");
-    console.log(leaderboardData);
-    leaderboardData.forEach((user) => {
-      const listItem = document.createElement("li");
-      listItem.textContent = `${user.username}-${user.totalExpense ? user.totalExpense + ' Rs' : '0'}`;
-      leaderboardList.appendChild(listItem);
-    });
+    try {
+      const response = await axios.get("/check-premium", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.data.isPremium) {
+        const leaderboardData = await fetchLeaderboardData();
+        const leaderboardList = document.getElementById("leaderboards");
+        document.querySelector(".leaderboard").style.display = "block";
+        console.log(leaderboardData);
+        leaderboardData.forEach((user) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = `${user.username}-${
+            user.totalExpense ? user.totalExpense + " Rs" : "0"
+          }`;
+          leaderboardList.appendChild(listItem);
+        });
+      } else {
+        alert("this feature is only for premium users");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
+  document
+    .getElementById("show-leaderboard")
+    .addEventListener("click", displayLeaderboard);
   getExpense();
 });

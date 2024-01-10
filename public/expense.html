@@ -14,50 +14,61 @@
     <script src="./scripts/expense.js" defer></script>
   </head>
   <body>
-    <h1>Expense Tracker</h1>
-    <div class="container">
-      <form id="my-form">
-        <ul id="user-data">
-          <li>
-            <label for="expense-amount">Choose Expense Amount : </label>
-            <input type="number" name="amount" id="expense-amount" required />
-          </li>
-          <li>
-            <label for="expense-description">Expense Description :</label>
-            <input
-              type="text"
-              name="description"
-              id="expense-description"
-              required
-            />
-          </li>
-          <li>
-            <label for="expense-category">Choose a Category:</label>
-            <select name="category" id="expense-category" required>
-              <option value="" style="display: none"></option>
-              <option value="Food">Food</option>
-              <option value="Movie">Movie</option>
-              <option value="Car">Car</option>
-              <option value="Outing">Outing</option>
-            </select>
-          </li>
-          <li>
-            <button type="submit">Add Expenses</button>
-          </li>
-        </ul>
-      </form>
-      <div id="premiumMessage" style="display: none">
-        <button type="button" id="buy-premium-btn">Buy Premium</button>
-        You are a premium user!
+    <nav class="nav-bar">
+      <ul class="nav-items">
+        <li>
+          <h1><a href="/expense.html">Expense Tracker</a></h1>
+        </li>
+        <li><button type="button" id="buy-premium-btn">Buy Premium</button></li>
+        <li id="premiumMessage" style="display: none">
+          You are a premium user!
+        </li>
+      </ul>
+    </nav>
+    <div class="new-container">
+      <div class="container">
+        <form id="my-form">
+          <ul id="user-data">
+            <li>
+              <label for="expense-amount">Choose Expense Amount : </label>
+              <input type="number" name="amount" id="expense-amount" required />
+            </li>
+            <li>
+              <label for="expense-description">Expense Description :</label>
+              <textarea
+                type="text"
+                name="description"
+                id="expense-description"
+                required
+              ></textarea>
+            </li>
+            <li>
+              <label for="expense-category">Choose a Category:</label>
+              <select name="category" id="expense-category" required>
+                <option value="" style="display: none"></option>
+                <option value="Food">Food</option>
+                <option value="Movie">Movie</option>
+                <option value="Car">Car</option>
+                <option value="Outing">Outing</option>
+              </select>
+            </li>
+            <li>
+              <button type="submit">Add Expenses</button>
+              <button type="button" id="show-leaderboard">
+                Show Leaderboards
+              </button>
+            </li>
+          </ul>
+        </form>
       </div>
-      <div>
-        <h2>Expenses</h2>
+      <div class="expense-container">
+        <h3>Expenses</h3>
         <ul id="user-list"></ul>
       </div>
-    </div>
-    <div>
-      <h2>Leaderboard</h2>
-      <ol id="leaderboards"></ol>
+      <div class="leaderboard">
+        <h3>Leaderboard</h3>
+        <ol id="leaderboards"></ol>
+      </div>
     </div>
   </body>
 </html>

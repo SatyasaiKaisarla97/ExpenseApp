@@ -1,5 +1,13 @@
 const expenses = require("../models/expense");
+const users = require("../models/user");
 const { v4: uuidv4 } = require("uuid");
+
+async function updateUserTotalExpense(userId) {
+  const total = await expenses.sum("expenseAmount", {
+    where: { userId: userId },
+  });
+  await users.update({ totalExpense: total }, { where: { id: userId } });
+}
 
 async function postExpenses(req, res) {
   try {
@@ -13,6 +21,7 @@ async function postExpenses(req, res) {
       category,
       userId,
     });
+    await updateUserTotalExpense(userId);
     res.json(expense);
   } catch (error) {
     console.error(error);
@@ -42,6 +51,7 @@ async function updateExpenses(req, res) {
     });
     if (expense) {
       await expense.update({ expenseAmount, description, category });
+      await updateUserTotalExpense(userId);
       res.json(expense);
     } else {
       res.status(404).send("Expense not found");
@@ -81,6 +91,7 @@ async function deleteExpense(req, res) {
 
     if (expense) {
       await expense.destroy();
+      await updateUserTotalExpense(userId);
       res.json({ message: "Expense deleted" });
     } else {
       res.status(404).send("Expense not found");

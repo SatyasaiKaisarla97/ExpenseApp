@@ -26,5 +26,10 @@ const users = sequelize.define("users", {
     allowNull: false,
     defaultValue: false,
   },
+  totalExpense: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    defaultValue: 0.0,
+  },
 });
 module.exports = users;
