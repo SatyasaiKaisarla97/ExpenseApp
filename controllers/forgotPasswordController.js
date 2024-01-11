@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
+const ForgotPassword = require("../models/forgotpassword");
 const bcrypt = require("bcrypt");
 const users = require("../models/user");
 const { Op } = require("sequelize");
@@ -58,11 +59,17 @@ exports.forgotPassword = async (req, res, next) => {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-    const tokenExpiration = Date.now() + 3600000; 
+    const tokenExpiration = Date.now() + 3600000;
 
     await user.update({
       resetToken: token,
       resetTokenExpiration: tokenExpiration,
+    });
+
+    await ForgotPassword.create({
+      userId: user.id,
+      token: token,
+      status: "active",
     });
 
     const resetUrl = `http://localhost:3000/passwordreset.html?token=${token}`;
@@ -107,6 +114,16 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).send("Invalid or expired password reset token.");
     }
+    const forgotPasswordRecord = await ForgotPassword.findOne({
+      where: {
+        token: token,
+        status: "active",
+      },
+    });
+
+    if (!forgotPasswordRecord) {
+      return res.status(400).send("Invalid or expired reset link.");
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await user.update({
@@ -114,7 +131,7 @@ exports.resetPassword = async (req, res) => {
       resetToken: null,
       resetTokenExpiration: null,
     });
-
+    await forgotPasswordRecord.update({ status: "resolved" });
     res.send("Password has been reset successfully.");
   } catch (error) {
     console.error("Reset Password Error:", error);

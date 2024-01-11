@@ -7,6 +7,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const razorpayRoutes = require("./routes/razorpayRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
+const ForgotPassword = require('./models/forgotpassword')
 const sequelize = require("./util/database");
 const expenses = require("./models/expense");
 const users = require("./models/user");
@@ -29,6 +30,8 @@ expenses.belongsTo(
   { constraints: true, onDelete: "CASCADE" }
 );
 users.hasMany(expenses, { foreignKey: "userId" });
+users.hasMany(ForgotPassword, { foreignKey: 'userId' });
+ForgotPassword.belongsTo(users, { foreignKey: 'userId' });
 
 sequelize
   .sync({ force: false })
