@@ -5,7 +5,8 @@ const bodyParser = require("body-parser");
 const loginRoutes = require("./routes/loginRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const razorpayRoutes = require("./routes/razorpayRoutes");
-const leaderboardRoutes = require('./routes/leaderboardRoutes')
+const leaderboardRoutes = require("./routes/leaderboardRoutes");
+const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
 const sequelize = require("./util/database");
 const expenses = require("./models/expense");
 const users = require("./models/user");
@@ -17,9 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.use("/", loginRoutes);
+app.use("/user", forgotPasswordRoutes);
 app.use("/user", expenseRoutes);
 app.use("/razorpay", razorpayRoutes);
-app.use('/', leaderboardRoutes)
+app.use("/", leaderboardRoutes);
 
 expenses.belongsTo(
   users,
@@ -31,6 +33,7 @@ users.hasMany(expenses, { foreignKey: "userId" });
 sequelize
   .sync({ force: false })
   .then((res) => {
-    app.listen(process.env.PORT);
+    app.listen(process.env.PORT || 3000);
+    console.log(`Server running at http://localhost:${process.env.PORT}/`);
   })
   .catch((err) => console.log(err));
