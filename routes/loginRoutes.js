@@ -10,5 +10,4 @@ router.get("/check-premium", verifyToken, authController.checkPremiumStatus);
 
 module.exports = router;
 
-//aezs msdd nxhw ygwr
-//mwed zkkx hers exkw
+
