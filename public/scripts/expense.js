@@ -274,13 +274,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   function generateAndDownloadReport() {
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
+    const month = document.getElementById("monthSelector").value;
+    const year = document.getElementById("yearSelector").value;
     const format = document.getElementById("report-format").value;
 
     axios
       .get(
-        `/user/generate-expense-report?startDate=${startDate}&endDate=${endDate}&format=${format}`,
+        `/user/generate-expense-report?month=${month}&year=${year}&format=${format}`,
         {
           responseType: "blob",
         }
@@ -292,13 +292,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const fileURL = URL.createObjectURL(file);
         const a = document.createElement("a");
         a.href = fileURL;
-        a.download = `expense-report-${startDate}-to-${endDate}.${format}`;
+        a.download = `expense-report-${month}-${year}.${format}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
       })
       .catch((error) => console.error("Error downloading the report:", error));
   }
-
   getExpense();
 });
