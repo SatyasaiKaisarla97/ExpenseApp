@@ -7,6 +7,7 @@ const expenseRoutes = require("./routes/expenseRoutes");
 const razorpayRoutes = require("./routes/razorpayRoutes");
 const leaderboardRoutes = require("./routes/leaderboardRoutes");
 const forgotPasswordRoutes = require("./routes/forgotPasswordRoutes");
+const reportRoutes = require('./routes/reportRoutes')
 const ForgotPassword = require('./models/forgotpassword')
 const sequelize = require("./util/database");
 const expenses = require("./models/expense");
@@ -21,6 +22,7 @@ app.use(express.static("public"));
 app.use("/", loginRoutes);
 app.use("/user", forgotPasswordRoutes);
 app.use("/user", expenseRoutes);
+app.use('/user', reportRoutes)
 app.use("/razorpay", razorpayRoutes);
 app.use("/", leaderboardRoutes);
 

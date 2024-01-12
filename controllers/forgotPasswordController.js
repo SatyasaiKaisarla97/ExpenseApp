@@ -1,10 +1,11 @@
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+// const nodemailer = require("nodemailer");
 const ForgotPassword = require("../models/forgotpassword");
 const bcrypt = require("bcrypt");
 const users = require("../models/user");
 const { Op } = require("sequelize");
 const SibApiV3Sdk = require("sib-api-v3-sdk");
+const sequelize = require("../util/database");
 
 // const transporter = nodemailer.createTransport({
 //   service: "gmail",
@@ -52,25 +53,36 @@ apiKey.apiKey = process.env.API_KEY;
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
 exports.forgotPassword = async (req, res, next) => {
+  const t = await sequelize.transaction();
   try {
-    const user = await users.findOne({ where: { email: req.body.email } });
+    const user = await users.findOne({
+      where: { email: req.body.email },
+      transaction: t,
+    });
     if (!user) {
+      await t.rollback()
       return res.status(400).send("User with given email does not exist");
     }
 
     const token = crypto.randomBytes(32).toString("hex");
     const tokenExpiration = Date.now() + 3600000;
 
-    await user.update({
-      resetToken: token,
-      resetTokenExpiration: tokenExpiration,
-    });
+    await user.update(
+      {
+        resetToken: token,
+        resetTokenExpiration: tokenExpiration,
+      },
+      { transaction: t }
+    );
 
-    await ForgotPassword.create({
-      userId: user.id,
-      token: token,
-      status: "active",
-    });
+    await ForgotPassword.create(
+      {
+        userId: user.id,
+        token: token,
+        status: "active",
+      },
+      { transaction: t }
+    );
 
     const resetUrl = `http://localhost:3000/passwordreset.html?token=${token}`;
     let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
@@ -84,22 +96,25 @@ exports.forgotPassword = async (req, res, next) => {
     };
 
     apiInstance.sendTransacEmail(sendSmtpEmail).then(
-      function (data) {
+      async(data) =>{
         console.log("API called successfully. Returned data: " + data);
       },
-      function (error) {
+      async(error) => {
+        await t.rollback()
         console.error(error);
       }
     );
-
+    await t.commit();
     res.send("Password reset link has been sent to your email.");
   } catch (error) {
+    await t.rollback();
     console.error("Forgot Password Error:", error);
     res.status(500).send("Error resetting password.");
   }
 };
 
 exports.resetPassword = async (req, res) => {
+  const t = await sequelize.transaction()
   try {
     const { token, newPassword } = req.body;
     const user = await users.findOne({
@@ -109,9 +124,11 @@ exports.resetPassword = async (req, res) => {
           [Op.gt]: Date.now(),
         },
       },
+      transaction: t
     });
 
     if (!user) {
+      await t.rollback()
       return res.status(400).send("Invalid or expired password reset token.");
     }
     const forgotPasswordRecord = await ForgotPassword.findOne({
@@ -119,9 +136,11 @@ exports.resetPassword = async (req, res) => {
         token: token,
         status: "active",
       },
+      transaction : t
     });
 
     if (!forgotPasswordRecord) {
+      await t.rollback()
       return res.status(400).send("Invalid or expired reset link.");
     }
 
@@ -130,10 +149,12 @@ exports.resetPassword = async (req, res) => {
       password: hashedPassword,
       resetToken: null,
       resetTokenExpiration: null,
-    });
-    await forgotPasswordRecord.update({ status: "resolved" });
+    },{transaction : t});
+    await forgotPasswordRecord.update({ status: "resolved" }, {transaction: t});
+    await t.commit()
     res.send("Password has been reset successfully.");
   } catch (error) {
+    await t.rollback()
     console.error("Reset Password Error:", error);
     res.status(500).send("Error resetting password.");
   }

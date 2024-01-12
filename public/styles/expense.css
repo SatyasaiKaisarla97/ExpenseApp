@@ -40,6 +40,7 @@ body {
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+
 .leaderboard {
   max-height: 60vh;
   overflow-y: scroll;
@@ -55,8 +56,12 @@ body {
   margin-bottom: 10px;
 }
 
-#buy-premium-btn{
+#buy-premium-btn, #generate-expense {
   margin: 20px;
+}
+
+#previouspage, #currentpage, #nextpage{
+  margin-bottom: 0;
 }
 
 
@@ -144,6 +149,80 @@ a {
 a:hover {
   text-decoration: none;
 }
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 50%;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  min-width: 100px;  
+  margin: 0 5px;    
+}
+
+@media screen and (max-width: 768px) {
+  .pagination button {
+    min-width: 80px;  
+  }
+}
+
+
+.leaderboard {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;  
+  height: 60vh;                    
+}
+
+
+.leaderboard > div:first-child {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+
+@media screen and (max-width: 768px) {
+  .leaderboard {
+    height: auto; 
+  }
+}
+
 
 @media screen and (max-width: 768px) {
   .expense-container,

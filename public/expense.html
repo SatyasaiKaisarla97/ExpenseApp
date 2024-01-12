@@ -64,10 +64,42 @@
       <div class="expense-container">
         <h3>Expenses</h3>
         <ul id="user-list"></ul>
+        <div id="reportModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Generate Expense Report</h2>
+
+            <form id="generateReportForm">
+              <label for="startDate">Start Date:</label>
+              <input type="date" id="startDate" name="startDate" required />
+              <label for="endDate">End Date:</label>
+              <input type="date" id="endDate" name="endDate" required />
+              <select id="report-format">
+                <option value="pdf">PDF</option>
+                <option value="xlsx">Excel</option>
+                <option value="csv">CSV</option>
+              </select>
+
+              <button id="generate-premium" type="submit">
+                Generate Report
+              </button>
+            </form>
+          </div>
+        </div>
+        <button type="button" id="generate-expense">
+          Generate Expense Report
+        </button>
       </div>
       <div class="leaderboard">
-        <h3>Leaderboard</h3>
-        <ol id="leaderboards"></ol>
+        <div>
+          <h3>Leaderboard</h3>
+          <ol id="leaderboards"></ol>
+        </div>
+        <div class="pagination">
+          <button id="prevPage" disabled>Previous</button>
+          <span id="currentPage">1</span>
+          <button id="nextPage" disabled>Next</button>
+        </div>
       </div>
     </div>
   </body>
