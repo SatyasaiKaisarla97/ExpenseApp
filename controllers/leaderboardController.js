@@ -4,6 +4,7 @@ async function getLeaderboard(req, res) {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
   try {
+    const totalUsers = await users.count(); // Count total users
     const leaderboardData = await users.findAll({
       attributes: ["username", "totalExpense"],
       order: [["totalExpense", "DESC"]],
@@ -11,8 +12,7 @@ async function getLeaderboard(req, res) {
       offset: (page - 1) * pageSize,
       raw: true,
     });
-    console.log(leaderboardData);
-    res.json(leaderboardData);
+    res.json({ totalUsers, leaderboardData }); // Send both totalUsers and leaderboardData
   } catch (error) {
     console.error("Error fetching leaderboard data:", error);
     res.status(500).send("Server error");
@@ -20,5 +20,5 @@ async function getLeaderboard(req, res) {
 }
 
 module.exports = {
-  getLeaderboard
-}
+  getLeaderboard,
+};

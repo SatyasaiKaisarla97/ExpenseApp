@@ -173,8 +173,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   let currentPage = 1;
-  const pageSize = 10;
   let totalPages = 0;
+  const pageSize = 10;
 
   function updatePaginationButtons() {
     document.getElementById("nextPage").disabled = currentPage >= totalPages;
@@ -189,39 +189,33 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      totalPages = Math.ceil(response.data.totalItems / pageSize);
-      console.log(response.data);
-      return response.data;
+      totalPages = Math.ceil(response.data.totalUsers / pageSize);
+      return response.data.leaderboardData;
     } catch (error) {
       console.error("Error fetching leaderboard data:", error);
     }
   }
+
   async function displayLeaderboard() {
     try {
-      const response = await axios.get("/check-premium", {
-        headers: { Authorization: `Bearer ${token}` },
+      const leaderboardData = await fetchLeaderboardData(currentPage, pageSize);
+
+      const leaderboardList = document.getElementById("leaderboards");
+      leaderboardList.innerHTML = "";
+      document.querySelector(".leaderboard").style.display = "flex";
+
+      let startNumber = (currentPage - 1) * pageSize + 1; // Calculate the starting number for the current page
+
+      leaderboardData.forEach((user) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = `${startNumber}. ${user.username} - ${
+          user.totalExpense ? user.totalExpense + " Rs" : "0"
+        }`;
+        leaderboardList.appendChild(listItem);
+        startNumber++; // Increment the number for the next item
       });
-      if (response.data.isPremium) {
-        const leaderboardData = await fetchLeaderboardData(
-          currentPage,
-          pageSize
-        );
-        const leaderboardList = document.getElementById("leaderboards");
-        leaderboardList.innerHTML = "";
-        document.querySelector(".leaderboard").style.display = "flex";
 
-        leaderboardData.forEach((user) => {
-          const listItem = document.createElement("li");
-          listItem.textContent = `${user.username}-${
-            user.totalExpense ? user.totalExpense + " Rs" : "0"
-          }`;
-          leaderboardList.appendChild(listItem);
-        });
-
-        document.getElementById("currentPage").textContent = currentPage;
-      } else {
-        alert("This feature is only for premium users");
-      }
+      document.getElementById("currentPage").textContent = currentPage;
     } catch (error) {
       console.log(error);
     }
@@ -230,6 +224,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("nextPage").addEventListener("click", () => {
     if (currentPage < totalPages) {
       currentPage++;
+      console.log("Current Page after Next:", currentPage);
       displayLeaderboard();
     }
   });
@@ -237,6 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("prevPage").addEventListener("click", () => {
     if (currentPage > 1) {
       currentPage--;
+      console.log("Current Page after Previous:", currentPage);
       displayLeaderboard();
     }
   });
