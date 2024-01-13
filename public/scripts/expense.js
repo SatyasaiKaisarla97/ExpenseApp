@@ -79,8 +79,21 @@ document.addEventListener("DOMContentLoaded", (event) => {
   });
 
   let currentExpensePage = 1;
-  const expensesPerPage = 10;
   let totalExpensePages = 0;
+
+  document
+    .getElementById("pageSizeSelect")
+    .addEventListener("change", function () {
+      const selectedValue = this.value;
+      localStorage.setItem("expensesPerPage", selectedValue);
+      getExpense(1); 
+    });
+
+  function initializePageSize() {
+    const savedPageSize = localStorage.getItem("expensesPerPage") || "10"; 
+    document.getElementById("pageSizeSelect").value = savedPageSize;
+    getExpense(); 
+  }
 
   function updateExpensePaginationControls(currentPage, totalPages) {
     document.getElementById("currentExpensePage").textContent = currentPage;
@@ -93,6 +106,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
   }
 
   async function getExpense(pageNumber = currentExpensePage) {
+    const expensesPerPage = parseInt(
+      document.getElementById("pageSizeSelect").value
+    );
     try {
       const response = await axios.get(
         `/user/expense?page=${pageNumber}&pageSize=${expensesPerPage}`
@@ -246,7 +262,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
       leaderboardList.innerHTML = "";
       document.querySelector(".leaderboard").style.display = "flex";
 
-      let startNumber = (currentPage - 1) * pageSize + 1; // Calculate the starting number for the current page
+      let startNumber = (currentPage - 1) * pageSize + 1; 
 
       leaderboardData.forEach((user) => {
         const listItem = document.createElement("li");
@@ -254,7 +270,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
           user.totalExpense ? user.totalExpense + " Rs" : "0"
         }`;
         leaderboardList.appendChild(listItem);
-        startNumber++; // Increment the number for the next item
+        startNumber++; 
       });
 
       document.getElementById("currentPage").textContent = currentPage;
@@ -337,5 +353,6 @@ document.addEventListener("DOMContentLoaded", (event) => {
       })
       .catch((error) => console.error("Error downloading the report:", error));
   }
+  initializePageSize();
   getExpense();
 });
