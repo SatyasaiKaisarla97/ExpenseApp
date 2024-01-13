@@ -7,15 +7,15 @@ body {
 
 .expense-container {
   width: 65%;
-  height: 60vh;
+  height: 80vh;
   margin: 10px 30px auto;
   background: #fff;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  max-height: 60vh;
-  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
-
 .new-container {
   display: flex;
 }
@@ -33,16 +33,15 @@ body {
 .container,
 .leaderboard {
   width: 30%;
-  height: 60vh;
+  height: 80vh;
   margin: 10px 30px auto;
   background: #fff;
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-
 .leaderboard {
-  max-height: 60vh;
+  max-height: 80vh;
   overflow-y: scroll;
   display: none;
 }
@@ -56,14 +55,16 @@ body {
   margin-bottom: 10px;
 }
 
-#buy-premium-btn, #generate-expense {
+#buy-premium-btn,
+#generate-expense {
   margin: 20px;
 }
 
-#previouspage, #currentpage, #nextpage{
+#previouspage,
+#currentpage,
+#nextpage {
   margin-bottom: 0;
 }
-
 
 label {
   display: block;
@@ -101,6 +102,8 @@ button:hover {
 }
 
 #user-list {
+  overflow-y: auto;
+  flex-grow: 1;
   margin-top: 20px;
 }
 
@@ -189,40 +192,38 @@ a:hover {
   justify-content: center;
   align-items: center;
   margin-top: 20px;
+  padding-top: 10px; 
+  background-color: #fff; 
 }
 
 .pagination button {
-  min-width: 100px;  
-  margin: 0 5px;    
+  min-width: 100px;
+  margin: 0 5px;
 }
 
 @media screen and (max-width: 768px) {
   .pagination button {
-    min-width: 80px;  
+    min-width: 80px;
   }
 }
-
 
 .leaderboard {
   display: none;
   flex-direction: column;
-  justify-content: space-between;  
-  height: 60vh;                    
+  justify-content: space-between;
+  height: 60vh;
 }
-
 
 .leaderboard > div:first-child {
   flex-grow: 1;
   overflow-y: auto;
 }
 
-
 @media screen and (max-width: 768px) {
   .leaderboard {
-    height: auto; 
+    height: auto;
   }
 }
-
 
 @media screen and (max-width: 768px) {
   .expense-container,

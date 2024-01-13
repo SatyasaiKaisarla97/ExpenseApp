@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", (event) => {
+  event.preventDefault();
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -77,21 +78,62 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("expense-category").value = "";
   });
 
-  async function getExpense() {
+  let currentExpensePage = 1;
+  const expensesPerPage = 10;
+  let totalExpensePages = 0;
+
+  function updateExpensePaginationControls(currentPage, totalPages) {
+    document.getElementById("currentExpensePage").textContent = currentPage;
+
+    document.getElementById("prevExpensePage").disabled = currentPage === 1;
+    document.getElementById("nextExpensePage").disabled =
+      currentPage === totalPages;
+    document.getElementById("lastExpensePageBtn").disabled =
+      currentPage === totalPages;
+  }
+
+  async function getExpense(pageNumber = currentExpensePage) {
     try {
-      const response = await axios.get("/user/expense");
-      showExpenses(response.data);
+      const response = await axios.get(
+        `/user/expense?page=${pageNumber}&pageSize=${expensesPerPage}`
+      );
+      totalExpensePages = response.data.totalPages;
+      showExpenses(response.data.expenses);
     } catch (error) {
       console.error("Error:", error);
+    } finally {
+      updateExpensePaginationControls(pageNumber, totalExpensePages);
+      currentExpensePage = pageNumber;
     }
   }
+
+  document
+    .getElementById("prevExpensePage")
+    .addEventListener("click", function () {
+      if (currentExpensePage > 1) {
+        getExpense(currentExpensePage - 1);
+      }
+    });
+
+  document
+    .getElementById("nextExpensePage")
+    .addEventListener("click", function () {
+      if (currentExpensePage < totalExpensePages) {
+        getExpense(currentExpensePage + 1);
+      }
+    });
+  document
+    .getElementById("lastExpensePageBtn")
+    .addEventListener("click", function () {
+      getExpense(totalExpensePages);
+    });
 
   function showExpenses(data) {
     userList.innerHTML = "";
     data.forEach((expense) => {
       const listItem = document.createElement("li");
       listItem.style.listStyle = "none";
-      listItem.textContent = `${expense.expenseAmount} Rs - ${expense.description} - ${expense.category}`;
+      listItem.textContent = ` ${expense.expenseAmount} Rs - ${expense.description} - ${expense.category}`;
 
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "Delete Expense";

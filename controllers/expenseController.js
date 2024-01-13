@@ -35,9 +35,30 @@ async function postExpenses(req, res) {
 
 async function getExpenses(req, res) {
   try {
+    const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
+    const pageSize = parseInt(req.query.pageSize) || 10; // Default page size is 10
+    const offset = (page - 1) * pageSize;
+
     const userId = req.user.userId;
-    const allexpenses = await expenses.findAll({ where: { userId: userId } });
-    res.json(allexpenses);
+
+    // Fetching the total number of expenses for pagination
+    const totalExpenses = await expenses.count({ where: { userId: userId } });
+    const totalPages = Math.ceil(totalExpenses / pageSize);
+
+    // Fetching paginated expenses
+    const allexpenses = await expenses.findAll({
+      where: { userId: userId },
+      limit: pageSize,
+      offset: offset,
+      order: [["createdAt", "DESC"]], // Assuming you might want to order them by date
+    });
+
+    res.json({
+      expenses: allexpenses,
+      totalExpenses,
+      totalPages,
+      currentPage: page,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("Error in fetching expenses");
